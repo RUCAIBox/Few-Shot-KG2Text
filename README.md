@@ -20,7 +20,7 @@ This repository contains the source code and datasets for the ACL 2021 Findings 
 - Anaconda3
 
 # Datasets and Models
-Our processed KG-to-Text datasets, including WebNLG, Agenda and GenWiki-Fine, can be downloaded from [Google drive](https://drive.google.com/drive/folders/1h6aJsfTJbniKtaja_ML-DyjQT1A5NUmK?usp=sharing). Specifically, we choose the three largest domains, i.e., Food, Airport, and Building, from WebNLG, and two largest domains, i.e., Sports and Games, from GenWiki-Fine. Their original datasets can be downloaded from [WebNLG](https://webnlg-challenge.loria.fr/challenge_2017/), [Agenda](https://github.com/rikdz/GraphWriter), and [Genwiki](https://github.com/zhijing-jin/genwiki). The WebNLG dataset is made of xml files, you can refer to [this repository](https://github.com/zhijing-jin/WebNLG_Reader) to transform them into json files. We utilize the large version of BART from Hugging Face.
+Our processed KG-to-Text datasets, including WebNLG, Agenda and GenWiki-Fine, can be downloaded from [Google drive](https://drive.google.com/drive/folders/10W1-Sc8snZJU6_-0uYXOWWGhO6OaU4AO?usp=sharing). Specifically, we choose the three largest domains, i.e., Food, Airport, and Building, from WebNLG, and two largest domains, i.e., Sports and Games, from GenWiki-Fine. Their original datasets can be downloaded from [WebNLG](https://webnlg-challenge.loria.fr/challenge_2017/), [Agenda](https://github.com/rikdz/GraphWriter), and [Genwiki](https://github.com/zhijing-jin/genwiki). The WebNLG dataset is made of xml files, you can refer to [this repository](https://github.com/zhijing-jin/WebNLG_Reader) to transform them into json files. We utilize the large version of BART from Hugging Face.
 
 # Training Instructions
 
@@ -32,7 +32,7 @@ python build_vocab.py
 python build_embedding.py
 ```
 
-After preparing all the files, you can run the run.sh file to start training by setting ```mode: train``` in config.yaml.
+Besides, we utilize [TransE](https://github.com/thunlp/OpenKE) for obtaining the KG embeddings for RBFS. After preparing all the files, you can run the run.sh file to start training by setting ```mode: train``` in config.yaml.
 
 ```
 sh run.sh 

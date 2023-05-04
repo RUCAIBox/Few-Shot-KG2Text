@@ -1,0 +1,6 @@
+{
+  "cnn_maxout_pieces":2,
+  "pretrained_vectors":null,
+  "token_vector_width":96,
+  "conv_depth":4
+}

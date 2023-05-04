@@ -27,6 +27,12 @@ class NLP:
 
 
 nlp = NLP()
+# used for RBFS
+embed_size = 512
+node2idx = pickle.load(open("transe_dict.pkl", "rb"))
+node_embedding = nn.Embedding(len(node2idx), embed_size)
+node_embedding.from_pretrained(torch.from_numpy(np.load("transe_embedding.npy")), freeze=True)
+node_embedding_weight = node_embedding.weight
 
 
 def camel_case_split(identifier):
@@ -43,7 +49,7 @@ def camel_case_split(identifier):
 
 
 def get_nodes(n):
-    n = unidecode.unidecode(n.strip().lower())
+    n = n.strip().lower()
     n = n.replace('-', ' ')
     n = n.replace('_', ' ')
     n = nlp.word_tokenize(n)
@@ -52,7 +58,7 @@ def get_nodes(n):
 
 
 def get_relation(n):
-    n = unidecode.unidecode(n.strip().lower())
+    n = n.strip().lower()
     n = n.replace('-', ' ')
     n = n.replace('_', ' ')
     n = nlp.word_tokenize(n)
@@ -63,38 +69,34 @@ def get_relation(n):
 def get_text(txt, lower=True):
     if lower:
         txt = txt.lower()
-    txt = unidecode.unidecode(txt.strip())
+    txt = txt.strip()
     txt = txt.replace('-', ' ')
     txt = nlp.word_tokenize(txt)
 
     return txt
 
 
-def BFS(graph, s):
+def RBFS(graph, s):
     queue = [s]
     seen = [s]
     node_seq = []
     while queue:
         vertex = queue.pop(0)
+        parent_idx = node2idx[vertex]
+        parent_emb = node_embedding_weight[parent_idx]
         adj_nodes = graph[vertex]
+        adj_weight = []
         for w in adj_nodes:
+            son_idx = node2idx[w]
+            son_emb = node_embedding_weight[son_idx]
+            adj_weight.append((w, parent_emb.dot(son_emb).item()))
+
+        sorted_adj_weight = sorted(adj_weight, key=lambda x: x[1], reverse=True)
+        sorted_adj_nodes = [n for n, _ in sorted_adj_weight.items()]
+
+        for w in sorted_adj_nodes:
             if w not in seen:
                 queue.append(w)
-                seen.append(w)
-        node_seq.append(vertex)
-    return node_seq
-
-
-def DFS(graph, s):
-    stack = [s]
-    seen = [s]
-    node_seq = []
-    while stack:
-        vertex = stack.pop()
-        adj_nodes = graph[vertex]
-        for w in adj_nodes:
-            if w not in seen:
-                stack.append(w)
                 seen.append(w)
         node_seq.append(vertex)
     return node_seq
@@ -249,7 +251,10 @@ for fn in filename:
         #     if case_en not in nodes:
         #         nodes.append(case_en)
 
-        new_dict['nodes'] = nodes
+        new_dict['nodes'] = RBFS(adject, nodes[0])  # provide root node
+
+        # if you do not want to use RBFS
+        # new_dict['nodes'] = nodes
 
         edges = [[], []]
         types = []
@@ -264,54 +269,6 @@ for fn in filename:
             types.append(t[1])
         new_dict['edges'] = edges
         new_dict['types'] = types
-
-        #
-        # bfs_edges = [[], []]
-        # bfs_types = []
-        # for t in new_dict['triples']:
-        #     hid = new_dict['bfs_nodes'].index(t[0])
-        #     tid = new_dict['bfs_nodes'].index(t[2])
-        #     bfs_edges[0].append(hid)
-        #     bfs_edges[1].append(tid)
-        #     bfs_types.append(t[1])
-        #     bfs_edges[1].append(hid)
-        #     bfs_edges[0].append(tid)
-        #     bfs_types.append(t[1])
-        # new_dict['bfs_edges'] = bfs_edges
-        # new_dict['bfs_types'] = bfs_types
-        #
-        # new_dict['dfs_nodes'] = new_dict['nodes']
-        #
-        # dfs_edges = [[], []]
-        # dfs_types = []
-        # for t in new_dict['triples']:
-        #     hid = new_dict['dfs_nodes'].index(t[0])
-        #     tid = new_dict['dfs_nodes'].index(t[2])
-        #     dfs_edges[0].append(hid)
-        #     dfs_edges[1].append(tid)
-        #     dfs_types.append(t[1])
-        #     dfs_edges[1].append(hid)
-        #     dfs_edges[0].append(tid)
-        #     dfs_types.append(t[1])
-        # new_dict['dfs_edges'] = dfs_edges
-        # new_dict['dfs_types'] = dfs_types
-        #
-        # new_dict['shuffle_nodes'] = nodes
-        # random.shuffle(new_dict['shuffle_nodes'])
-        #
-        # shuffle_edges = [[], []]
-        # shuffle_types = []
-        # for t in new_dict['triples']:
-        #     hid = new_dict['shuffle_nodes'].index(t[0])
-        #     tid = new_dict['shuffle_nodes'].index(t[2])
-        #     shuffle_edges[0].append(hid)
-        #     shuffle_edges[1].append(tid)
-        #     shuffle_types.append(t[1])
-        #     shuffle_edges[1].append(hid)
-        #     shuffle_edges[0].append(tid)
-        #     shuffle_types.append(t[1])
-        # new_dict['shuffle_edges'] = shuffle_edges
-        # new_dict['shuffle_types'] = shuffle_types
 
         word_nodes = [bert_tokenizer.tokenize(node) for node in new_dict['nodes']]
         new_dict['split_nodes'] = [nd for nodes in word_nodes for nd in nodes]
